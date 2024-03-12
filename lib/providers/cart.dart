@@ -1,0 +1,76 @@
+import 'package:flutter/cupertino.dart';
+import 'package:onlayn_dukon/models/card_item.dart';
+
+class Cart with ChangeNotifier {
+  final Map<String, CartItem> _items = {};
+
+  Map<String, CartItem> get items {
+    return {..._items};
+  }
+
+  int itemsCount() {
+    return _items.length;
+  }
+
+  double get totalPrice {
+    var total = 0.0;
+    _items.forEach((key, cartItems) {
+      total += cartItems.price * cartItems.quantity;
+    });
+    return total;
+  }
+
+  void addToCart(String productId, String title, String image, double price) {
+    if (_items.containsKey(productId)) {
+      // sonini ko'paytir
+      _items.update(
+          productId,
+          (currentProduct) => CartItem(
+              id: currentProduct.id,
+              title: currentProduct.title,
+              quantity: currentProduct.quantity + 1,
+              price: currentProduct.price,
+              image: currentProduct.image));
+      notifyListeners();
+    } else {
+      // savatga yangi mahsulot qo'shilmoqda
+      _items.putIfAbsent(
+          productId,
+          () => CartItem(
+              id: UniqueKey().toString(),
+              title: title,
+              quantity: 1,
+              price: price,
+              image: image));
+      notifyListeners();
+    }
+  }
+
+  void removeToCart(String productId, {bool isCartButton = false}) {
+    if(!_items.containsKey(productId)) {
+      return;
+    }
+    if(_items[productId]!.quantity > 1) {
+      _items.update(productId, (currentProduct) => CartItem(
+          id: currentProduct.id,
+          title: currentProduct.title,
+          quantity: currentProduct.quantity - 1,
+          price: currentProduct.price,
+          image: currentProduct.image));
+
+    } else if(isCartButton) {
+      _items.remove(productId);
+    }
+    notifyListeners();
+  }
+
+  void removeItem(id) {
+    _items.remove(id);
+    notifyListeners();
+  }
+
+  void clearCart() {
+    _items.clear();
+    notifyListeners();
+  }
+}
